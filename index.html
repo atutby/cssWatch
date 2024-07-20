@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cssWatch</title>
+    <link rel="stylesheet" type="text/css" href="example.css">
+    <link rel="stylesheet" type="text/css" href="example2.css">
+
+    <script src="cssWatch.js"></script>    <!-- Здесь -->
+
+</head>
+<body>
+    <a href="Изменяем СSS в реальном времени / Хабр">https://habr.com/post/147979/</a>
+    <br>
+
+
+    <p>Simple text in paragraph</p>
+    
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <br>
+    <h2>Попробуйте поменять стили в соответствующих файлах:</h2>
+     <div class="b-block">
+         example.css
+     </div>
+     
+     <div class="b-block2">
+         example2.css
+     </div>
+
+     <h2>Исходный текст</h2>
+
+     <div class="spoiler_text"><pre><code class="javascript"> var cssWatch = {  
+        /**
+         * Интервал проверки изменений css (в миллисекундах)
+         */
+        interValUpdate: 100,
+        
+   
+   /*------Дальше править не рекомендуется-----------------------------------------------------*/
+   
+        arrayCssFiles: new Array(),
+        arrayLastModified: new Array(),
+        arrayCssObj: new Array(),
+        counter: 0,
+        
+        ajax: function (obj) {
+            var _this = this;
+            var request=null;
+            var lastModified = '';
+            
+            try {
+               request = new XMLHttpRequest();
+            } catch (e) {
+                try {
+                    request=new ActiveXObject("Msxml2.XMLHTTP");
+                } catch (e) {
+                    request=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+            }
+            
+            var url = obj.url+'?_=' + Math.random();
+            request.onreadystatechange = function (text,text2) {
+                if (request.readyState == 4) {                
+                    lastModified = /Last-Modified[]?:([^\n]+)/ig.exec(request.getAllResponseHeaders());
+                    lastModified = lastModified[1];
+                    
+                    if (request.status == 200) {              
+                        _this.arrayCssObj[_this.counter].setAttribute('href',_this.arrayCssFiles[_this.counter]+'?_=' + Math.random());
+                        if (lastModified) {
+                            _this.arrayLastModified[_this.counter] = lastModified.replace(/^\s+/, '').replace(/\s+$/, '');
+                        }
+                    } 
+   
+                    setTimeout(function () {
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   if (_this.counter &lt; _this.arrayCssObj.length - 1) {
+                            _this.counter++;
+                            _this.loadCss();
+                        } else {
+                            _this.counter = 0;
+                            _this.loadCss();
+                        }                      
+                    },_this.interValUpdate);                 
+                }
+            };
+   
+            request.open("HEAD", url, true);
+   
+            if (_this.arrayLastModified[_this.counter]) {
+                request.setRequestHeader("If-Modified-Since", _this.arrayLastModified[_this.counter]);
+            }
+            request.send(null);
+            
+            return request;         
+        },
+   
+        parse : function () {   
+            var _this = this;
+            
+            var arrayLink = document.getElementsByTagName('link');
+            var arrayLinkLength = arrayLink.length;
+            
+            for (var i = 0; i &lt; arrayLinkLength; i++) {
+                if (arrayLink[i].getAttribute('href').substr(-4) == '.css' &amp;&amp; arrayLink[i].getAttribute('cssWatch') != 'no') {
+                    _this.arrayCssFiles[_this.arrayCssFiles.length] = arrayLink[i].getAttribute('href');
+                    _this.arrayCssObj[_this.arrayCssFiles.length - 1] = arrayLink[i];                 
+                }
+            }
+   
+            if (_this.arrayCssFiles.length &gt; 0) {&lt;b&gt;
+                this.loadCss();
+            }&lt;/b&gt;
+         },
+         
+        loadCss: function () {
+             var _this = this;
+                    
+             this.ajax({url:_this.arrayCssFiles[_this.counter]});
+        },
+        
+        create: function () {       
+            var _this = this;
+            
+            if (document.readyState == 'complete') {
+                this.init();             
+            } else {
+                setTimeout(function () {
+                    _this.create();
+                },50);
+            }
+        }
+    };
+     
+    cssWatch.create();
+   </code></pre><br>
+   <br>
+   </div>
+
+</body>
+</html>
